@@ -1,0 +1,525 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local DevPanel = Instance.new("ScreenGui")
+DevPanel.Name = "DevPanel"
+DevPanel.ResetOnSpawn = false
+DevPanel.Parent = PlayerGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0.25, 0, 0.6, 0) -- Ajustado para mobile
+MainFrame.Position = UDim2.new(0.7, 0, 0.2, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Draggable = true -- Para arrastar no desktop, pode ser desativado para mobile puro
+MainFrame.Parent = DevPanel
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Size = UDim2.new(1, 0, 0.1, 0)
+TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 20
+TitleLabel.Text = "Dev Panel"
+TitleLabel.Parent = MainFrame
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0.15, 0, 0.1, 0)
+ToggleButton.Position = UDim2.new(0.85, 0, 0, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextSize = 18
+ToggleButton.Text = "X"
+ToggleButton.Parent = MainFrame
+
+ToggleButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- Seção de Velocidade
+local SpeedFrame = Instance.new("Frame")
+SpeedFrame.Name = "SpeedFrame"
+SpeedFrame.Size = UDim2.new(0.9, 0, 0.15, 0)
+SpeedFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
+SpeedFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SpeedFrame.BorderSizePixel = 0
+SpeedFrame.Parent = MainFrame
+
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Name = "SpeedLabel"
+SpeedLabel.Size = UDim2.new(1, 0, 0.3, 0)
+SpeedLabel.Position = UDim2.new(0, 0, 0, 0)
+SpeedLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedLabel.Font = Enum.Font.Gotham
+SpeedLabel.TextSize = 16
+SpeedLabel.Text = "Velocidade: 16"
+SpeedLabel.Parent = SpeedFrame
+
+local SpeedSlider = Instance.new("Frame") -- Usando Frame para simular Slider
+SpeedSlider.Name = "SpeedSlider"
+SpeedSlider.Size = UDim2.new(0.9, 0, 0.4, 0)
+SpeedSlider.Position = UDim2.new(0.05, 0, 0.4, 0)
+SpeedSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+SpeedSlider.BorderSizePixel = 0
+SpeedSlider.Parent = SpeedFrame
+
+local SpeedSliderFill = Instance.new("Frame")
+SpeedSliderFill.Name = "SpeedSliderFill"
+SpeedSliderFill.Size = UDim2.new(0, 0, 1, 0)
+SpeedSliderFill.Position = UDim2.new(0, 0, 0, 0)
+SpeedSliderFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+SpeedSliderFill.BorderSizePixel = 0
+SpeedSliderFill.Parent = SpeedSlider
+
+local SpeedSliderHandle = Instance.new("Frame")
+SpeedSliderHandle.Name = "SpeedSliderHandle"
+SpeedSliderHandle.Size = UDim2.new(0, 15, 1, 0)
+SpeedSliderHandle.Position = UDim2.new(0, 0, 0, 0)
+SpeedSliderHandle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SpeedSliderHandle.BorderSizePixel = 0
+SpeedSliderHandle.Parent = SpeedSlider
+
+local minSpeed = 0
+local maxSpeed = 100
+local currentSpeed = 16
+
+local function updateSpeed(newSpeed)
+    currentSpeed = math.clamp(newSpeed, minSpeed, maxSpeed)
+    SpeedLabel.Text = "Velocidade: " .. math.floor(currentSpeed)
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = currentSpeed
+    end
+    local fillRatio = (currentSpeed - minSpeed) / (maxSpeed - minSpeed)
+    SpeedSliderFill.Size = UDim2.new(fillRatio, 0, 1, 0)
+    SpeedSliderHandle.Position = UDim2.new(fillRatio, -SpeedSliderHandle.Size.X.Offset / 2, 0, 0)
+end
+
+SpeedSlider.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        local function onInputChanged(input2)
+            if input2.UserInputType == Enum.UserInputType.MouseButton1 or input2.UserInputType == Enum.UserInputType.Touch then
+                local mousePos = UserInputService:GetMouseLocation()
+                local sliderPos = SpeedSlider.AbsolutePosition
+                local sliderSize = SpeedSlider.AbsoluteSize
+                local relativeX = math.clamp((mousePos.X - sliderPos.X) / sliderSize.X, 0, 1)
+                local newSpeed = minSpeed + (maxSpeed - minSpeed) * relativeX
+                updateSpeed(newSpeed)
+            end
+        end
+        local inputChangedConn = UserInputService.InputChanged:Connect(onInputChanged)
+        local inputEndedConn = UserInputService.InputEnded:Connect(function(input2)
+            if input2.UserInputType == Enum.UserInputType.MouseButton1 or input2.UserInputType == Enum.UserInputType.Touch then
+                inputChangedConn:Disconnect()
+                inputEndedConn:Disconnect()
+            end
+        end)
+    end
+end)
+
+-- Inicializa a velocidade
+updateSpeed(currentSpeed)
+
+-- Atualiza a velocidade caso o personagem seja recarregado
+LocalPlayer.CharacterAdded:Connect(function(character)
+    character:WaitForChild("Humanoid"):GetPropertyChangedSignal("WalkSpeed"):Wait()
+    updateSpeed(currentSpeed)
+end)
+
+-- Fly Mode
+local FlyFrame = Instance.new("Frame")
+FlyFrame.Name = "FlyFrame"
+FlyFrame.Size = UDim2.new(0.9, 0, 0.1, 0)
+FlyFrame.Position = UDim2.new(0.05, 0, 0.27, 0) -- Posição ajustada
+FlyFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+FlyFrame.BorderSizePixel = 0
+FlyFrame.Parent = MainFrame
+
+local FlyToggle = Instance.new("TextButton")
+FlyToggle.Name = "FlyToggle"
+FlyToggle.Size = UDim2.new(0.9, 0, 0.8, 0)
+FlyToggle.Position = UDim2.new(0.05, 0, 0.1, 0)
+FlyToggle.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+FlyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyToggle.Font = Enum.Font.GothamBold
+FlyToggle.TextSize = 16
+FlyToggle.Text = "Fly: OFF"
+FlyToggle.Parent = FlyFrame
+
+local isFlying = false
+local flySpeed = 1
+local camera = workspace.CurrentCamera
+
+local function toggleFly()
+    isFlying = not isFlying
+    FlyToggle.Text = "Fly: " .. (isFlying and "ON" or "OFF")
+
+    if isFlying then
+        LocalPlayer.Character.Humanoid.PlatformStand = true
+        LocalPlayer.Character.Humanoid.Sit = true -- Para evitar que o personagem caia
+        LocalPlayer.Character.Humanoid.WalkSpeed = 0
+        LocalPlayer.Character.Humanoid.JumpPower = 0
+    else
+        LocalPlayer.Character.Humanoid.PlatformStand = false
+        LocalPlayer.Character.Humanoid.Sit = false
+        LocalPlayer.Character.Humanoid.WalkSpeed = currentSpeed -- Retorna à velocidade definida
+        LocalPlayer.Character.Humanoid.JumpPower = 50 -- Valor padrão
+    end
+end
+
+FlyToggle.MouseButton1Click:Connect(toggleFly)
+
+-- Controles de voo (mobile e teclado)
+local function handleFlyMovement(dt)
+    if not isFlying or not LocalPlayer.Character or not camera then return end
+
+    local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not rootPart then return end
+
+    local moveVector = Vector3.new(0, 0, 0)
+
+    -- Teclado (para testar no PC)
+    if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector += camera.CFrame.LookVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector -= camera.CFrame.LookVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector -= camera.CFrame.RightVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector += camera.CFrame.RightVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVector += Vector3.new(0, 1, 0) end
+    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveVector -= Vector3.new(0, 1, 0) end
+
+    -- Controles mobile (simples, pode ser expandido com joysticks virtuais)
+    -- Para um controle mobile mais robusto, seria necessário um joystick virtual na tela.
+    -- Por simplicidade, vamos usar toques na tela para cima/baixo/frente/trás
+    -- if UserInputService.TouchEnabled then
+    --     -- Exemplo básico: tocar na metade superior da tela move para frente, inferior para trás
+    --     -- Isso é muito simplificado e precisaria de um joystick virtual para ser bom.
+    --     -- Para o propósito de um painel de dev, pode ser aceitável.
+    --     -- if touchDelta.Y < -5 then moveVector += camera.CFrame.LookVector end -- Mover para frente
+    --     -- if touchDelta.Y > 5 then moveVector -= camera.CFrame.LookVector end  -- Mover para trás
+    --     -- if touchDelta.X < -5 then moveVector -= camera.CFrame.RightVector end -- Mover para esquerda
+    --     -- if touchDelta.X > 5 then moveVector += camera.CFrame.RightVector end  -- Mover para direita
+    -- end
+
+    if moveVector.Magnitude > 0 then
+        rootPart.CFrame += moveVector.Unit * flySpeed * 20 * dt -- Multiplicado por 20 para ser mais rápido
+    end
+end
+
+RunService.RenderStepped:Connect(handleFlyMovement)
+
+-- ESP
+local EspFrame = Instance.new("Frame")
+EspFrame.Name = "EspFrame"
+EspFrame.Size = UDim2.new(0.9, 0, 0.25, 0)
+EspFrame.Position = UDim2.new(0.05, 0, 0.44, 0) -- Posição ajustada
+EspFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+EspFrame.BorderSizePixel = 0
+EspFrame.Parent = MainFrame
+
+local EspToggle = Instance.new("TextButton")
+EspToggle.Name = "EspToggle"
+EspToggle.Size = UDim2.new(0.9, 0, 0.3, 0)
+EspToggle.Position = UDim2.new(0.05, 0, 0.05, 0)
+EspToggle.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+EspToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspToggle.Font = Enum.Font.GothamBold
+EspToggle.TextSize = 16
+EspToggle.Text = "ESP: OFF"
+EspToggle.Parent = EspFrame
+
+local EspColorButton = Instance.new("TextButton")
+EspColorButton.Name = "EspColorButton"
+EspColorButton.Size = UDim2.new(0.4, 0, 0.3, 0)
+EspColorButton.Position = UDim2.new(0.05, 0, 0.4, 0)
+EspColorButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+EspColorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspColorButton.Font = Enum.Font.GothamBold
+EspColorButton.TextSize = 14
+EspColorButton.Text = "Cor ESP"
+EspColorButton.Parent = EspFrame
+
+local EspLineToggle = Instance.new("TextButton")
+EspLineToggle.Name = "EspLineToggle"
+EspLineToggle.Size = UDim2.new(0.4, 0, 0.3, 0)
+EspLineToggle.Position = UDim2.new(0.55, 0, 0.4, 0)
+EspLineToggle.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+EspLineToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspLineToggle.Font = Enum.Font.GothamBold
+EspLineToggle.TextSize = 14
+EspLineToggle.Text = "Linhas: OFF"
+EspLineToggle.Parent = EspFrame
+
+local EspBoxToggle = Instance.new("TextButton")
+EspBoxToggle.Name = "EspBoxToggle"
+EspBoxToggle.Size = UDim2.new(0.9, 0, 0.3, 0)
+EspBoxToggle.Position = UDim2.new(0.05, 0, 0.75, 0)
+EspBoxToggle.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+EspBoxToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspBoxToggle.Font = Enum.Font.GothamBold
+EspBoxToggle.TextSize = 16
+EspBoxToggle.Text = "Caixas: OFF"
+EspBoxToggle.Parent = EspFrame
+
+local isEspEnabled = false
+local isEspLineEnabled = false
+local isEspBoxEnabled = false
+local espColor = Color3.fromRGB(255, 0, 0) -- Cor inicial vermelha
+local espHighlights = {}
+local espLines = {}
+local espBoxes = {}
+
+local function createEspHighlight(target)
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = target
+    highlight.FillColor = espColor
+    highlight.OutlineColor = espColor
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = target
+    return highlight
+end
+
+local function createEspLine(target)
+    local line = Instance.new("Part")
+    line.Name = "EspLine"
+    line.Anchored = true
+    line.CanCollide = false
+    line.Transparency = 0.5
+    line.BrickColor = BrickColor.new(espColor)
+    line.FormFactor = Enum.FormFactor.Custom
+    line.Size = Vector3.new(0.1, 0.1, 0.1)
+    line.Parent = workspace
+    return line
+end
+
+local function createEspBox(target)
+    local box = Instance.new("BoxHandleAdornment")
+    box.Adornee = target
+    box.Color = espColor
+    box.AlwaysOnTop = true
+    box.ZIndex = 10
+    box.Parent = target
+    return box
+end
+
+local function updateEsp()
+    for _, highlight in pairs(espHighlights) do highlight:Destroy() end
+    for _, line in pairs(espLines) do line:Destroy() end
+    for _, box in pairs(espBoxes) do box:Destroy() end
+    espHighlights = {}
+    espLines = {}
+    espBoxes = {}
+
+    if not isEspEnabled then return end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+            local target = player.Character.HumanoidRootPart
+            if target then
+                local highlight = createEspHighlight(target)
+                table.insert(espHighlights, highlight)
+
+                if isEspLineEnabled then
+                    local line = createEspLine(target)
+                    table.insert(espLines, line)
+                end
+
+                if isEspBoxEnabled then
+                    local box = createEspBox(target)
+                    table.insert(espBoxes, box)
+                end
+            end
+        end
+    end
+    -- Adicionar lógica para NPCs aqui, se necessário
+end
+
+local function updateEspLinesAndBoxes()
+    if not isEspEnabled then return end
+
+    for i, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+            local target = player.Character.HumanoidRootPart
+            if target then
+                if isEspLineEnabled and espLines[i] then
+                    local line = espLines[i]
+                    local origin = LocalPlayer.Character.HumanoidRootPart.Position
+                    local destination = target.Position
+                    local distance = (origin - destination).Magnitude
+                    line.Size = Vector3.new(0.1, 0.1, distance)
+                    line.CFrame = CFrame.new(origin, destination) * CFrame.new(0, 0, -distance / 2)
+                end
+
+                if isEspBoxEnabled and espBoxes[i] then
+                    local box = espBoxes[i]
+                    box.Adornee = target
+                end
+            end
+        end
+    end
+end
+
+EspToggle.MouseButton1Click:Connect(function()
+    isEspEnabled = not isEspEnabled
+    EspToggle.Text = "ESP: " .. (isEspEnabled and "ON" or "OFF")
+    updateEsp()
+end)
+
+EspLineToggle.MouseButton1Click:Connect(function()
+    isEspLineEnabled = not isEspLineEnabled
+    EspLineToggle.Text = "Linhas: " .. (isEspLineEnabled and "ON" or "OFF")
+    updateEsp()
+end)
+
+EspBoxToggle.MouseButton1Click:Connect(function()
+    isEspBoxEnabled = not isEspBoxEnabled
+    EspBoxToggle.Text = "Caixas: " .. (isEspBoxEnabled and "ON" or "OFF")
+    updateEsp()
+end)
+
+EspColorButton.MouseButton1Click:Connect(function()
+    -- Implementar seletor de cor aqui (pode ser um novo frame com botões de cor)
+    -- Por enquanto, apenas alterna entre algumas cores pré-definidas
+    if espColor == Color3.fromRGB(255, 0, 0) then
+        espColor = Color3.fromRGB(0, 255, 0)
+    elseif espColor == Color3.fromRGB(0, 255, 0) then
+        espColor = Color3.fromRGB(0, 0, 255)
+    else
+        espColor = Color3.fromRGB(255, 0, 0)
+    end
+    EspColorButton.BackgroundColor3 = espColor
+    updateEsp()
+end)
+
+RunService.RenderStepped:Connect(updateEspLinesAndBoxes)
+
+Players.PlayerAdded:Connect(updateEsp)
+Players.PlayerRemoving:Connect(updateEsp)
+
+local TeleportFrame = Instance.new("Frame")
+TeleportFrame.Name = "TeleportFrame"
+TeleportFrame.Size = UDim2.new(0.9, 0, 0.15, 0)
+TeleportFrame.Position = UDim2.new(0.05, 0, 0.75, 0) -- Posição ajustada
+TeleportFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TeleportFrame.BorderSizePixel = 0
+TeleportFrame.Parent = MainFrame
+
+local TeleportLabel = Instance.new("TextLabel")
+TeleportLabel.Name = "TeleportLabel"
+TeleportLabel.Size = UDim2.new(1, 0, 0.3, 0)
+TeleportLabel.Position = UDim2.new(0, 0, 0, 0)
+TeleportLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TeleportLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TeleportLabel.Font = Enum.Font.Gotham
+TeleportLabel.TextSize = 16
+TeleportLabel.Text = "Teleporte para:"
+TeleportLabel.Parent = TeleportFrame
+
+local TeleportButton1 = Instance.new("TextButton")
+TeleportButton1.Name = "TeleportButton1"
+TeleportButton1.Size = UDim2.new(0.45, 0, 0.5, 0)
+TeleportButton1.Position = UDim2.new(0.05, 0, 0.4, 0)
+TeleportButton1.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+TeleportButton1.TextColor3 = Color3.fromRGB(255, 255, 255)
+TeleportButton1.Font = Enum.Font.GothamBold
+TeleportButton1.TextSize = 14
+TeleportButton1.Text = "Checkpoint 1"
+TeleportButton1.Parent = TeleportFrame
+
+local TeleportButton2 = Instance.new("TextButton")
+TeleportButton2.Name = "TeleportButton2"
+TeleportButton2.Size = UDim2.new(0.45, 0, 0.5, 0)
+TeleportButton2.Position = UDim2.new(0.5, 0, 0.4, 0)
+TeleportButton2.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+TeleportButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+TeleportButton2.Font = Enum.Font.GothamBold
+TeleportButton2.TextSize = 14
+TeleportButton2.Text = "Checkpoint 2"
+TeleportButton2.Parent = TeleportFrame
+
+local function teleportPlayer(position)
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(position)
+    end
+end
+
+-- Defina as posições dos checkpoints aqui
+local checkpoint1Pos = Vector3.new(0, 10, 0) -- Exemplo: Posição X, Y, Z
+local checkpoint2Pos = Vector3.new(50, 10, 50) -- Exemplo: Posição X, Y, Z
+
+TeleportButton1.MouseButton1Click:Connect(function()
+    teleportPlayer(checkpoint1Pos)
+end)
+
+TeleportButton2.MouseButton1Click:Connect(function()
+    teleportPlayer(checkpoint2Pos)
+end)
+
+MainFrame.Visible = false -- Começa invisível
+
+-- Botão para mostrar/esconder o painel (fora do MainFrame para ser sempre acessível)
+local ShowHideButton = Instance.new("TextButton")
+ShowHideButton.Name = "ShowHideButton"
+ShowHideButton.Size = UDim2.new(0.1, 0, 0.05, 0)
+ShowHideButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+ShowHideButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+ShowHideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ShowHideButton.Font = Enum.Font.GothamBold
+ShowHideButton.TextSize = 16
+ShowHideButton.Text = "Dev Panel"
+ShowHideButton.Parent = DevPanel
+
+ShowHideButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- Função para tornar o MainFrame arrastável (para desktop)
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function doDrag(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragInput = input
+        dragStart = input.Position
+        startPos = MainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        doDrag(input)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input == dragInput then
+        dragging = false
+    end
+end)
