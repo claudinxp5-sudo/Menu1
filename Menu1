@@ -1004,9 +1004,3 @@ createButton(ConfigTab, "Carregar Configurações", function()
             warn("Nenhuma configuração encontrada para carregar.")
         end
     end)
-end)
-
--- Inicialização (aplica configurações salvas ou padrão)
--- loadSettings() -- Descomentar após implementar todas as funções de setar estado
-
-print("Brasil Menu carregado com sucesso!")
