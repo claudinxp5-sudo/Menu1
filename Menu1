@@ -10,12 +10,12 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Camera = Workspace.CurrentCamera
 
 local Theme = {
-	Verde   = Color3.fromRGB(0, 155, 58),
+	Verde = Color3.fromRGB(0, 155, 58),
 	Amarelo = Color3.fromRGB(255, 223, 0),
-	Azul    = Color3.fromRGB(0, 39, 118),
-	Fundo   = Color3.fromRGB(20, 22, 25),
+	Azul = Color3.fromRGB(0, 39, 118),
+	Fundo = Color3.fromRGB(20, 22, 25),
 	FundoAba= Color3.fromRGB(28, 30, 34),
-	Texto   = Color3.fromRGB(240, 240, 240),
+	Texto = Color3.fromRGB(240, 240, 240),
 }
 
 local State = {
@@ -31,9 +31,17 @@ local State = {
 	MostrarNomes = false,
 	MostrarDistancia = false,
 	Gravidade = Workspace.Gravity,
+	-- Aimbot State
+	AimbotAtivado = false,
+	AimbotSuavidade = 10,
+	AimbotFOV = 300,
+	AimbotDistanciaMax = 1000,
+	AimbotOnlyVisible = true,
+	AimbotLock = false,
+	AimbotTeamCheck = false,
 }
 
-local FlyConnection, NoClipConnection, InfJumpConnection, ESPConnection
+local FlyConnection, NoClipConnection, InfJumpConnection, ESPConnection, AimbotConnection
 local FlyBodyVelocity, FlyBodyGyro
 local ESPFolder = Instance.new("Folder")
 ESPFolder.Name = "BrasilMenu_ESP"
@@ -66,7 +74,6 @@ local function AddStroke(inst, color, thickness)
 	return s
 end
 
--- ===================== TELA DE ENTRADA (INTRO) =====================
 local IntroFrame = Instance.new("Frame")
 IntroFrame.Name = "IntroScreen"
 IntroFrame.Size = UDim2.fromScale(1, 1)
@@ -115,9 +122,7 @@ local function PlayIntro(onFinished)
 	IntroFrame:Destroy()
 	if onFinished then onFinished() end
 end
--- ======================================================================
 
--- ===================== BOTÃO DE ABRIR MELHORADO =====================
 local ToggleButton = Instance.new("ImageButton")
 ToggleButton.Name = "ToggleButton"
 ToggleButton.Size = UDim2.fromOffset(56, 56)
@@ -149,7 +154,6 @@ end)
 ToggleButton.MouseButton1Up:Connect(function()
 	TweenService:Create(ToggleButton, TweenInfo.new(0.12), {Size = UDim2.fromOffset(56, 56)}):Play()
 end)
--- =======================================================================
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
@@ -256,7 +260,7 @@ local function CreateTab(name, order)
 	AddCorner(Btn, 6)
 
 	local Page = Instance.new("ScrollingFrame")
-	Page.Name = name .. "Page"
+	Page.Name = name.. "Page"
 	Page.Size = UDim2.fromScale(1, 1)
 	Page.BackgroundTransparency = 1
 	Page.BorderSizePixel = 0
@@ -281,7 +285,7 @@ local function CreateTab(name, order)
 	Padding.Parent = Page
 
 	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		Page.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 20)
+Page.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 20)
 	end)
 
 	return Btn, Page
@@ -290,9 +294,9 @@ end
 local Tabs = {}
 local function SwitchTab(name)
 	for tabName, data in pairs(Tabs) do
-		data.Page.Visible = (tabName == name)
-		data.Btn.BackgroundColor3 = (tabName == name) and Theme.Verde or Theme.Fundo
-		data.Btn.TextColor3 = (tabName == name) and Theme.Fundo or Theme.Texto
+data.Page.Visible = (tabName == name)
+data.Btn.BackgroundColor3 = (tabName == name) and Theme.Verde or Theme.Fundo
+data.Btn.TextColor3 = (tabName == name) and Theme.Fundo or Theme.Texto
 	end
 end
 
@@ -331,14 +335,14 @@ local function CreateToggle(parent, text, default, callback)
 
 	local on = default
 	Switch.MouseButton1Click:Connect(function()
-		on = not on
-		TweenService:Create(Switch, TweenInfo.new(0.2), {
-			BackgroundColor3 = on and Theme.Verde or Color3.fromRGB(60, 60, 60)
-		}):Play()
-		TweenService:Create(Dot, TweenInfo.new(0.2), {
-			Position = on and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
-		}):Play()
-		callback(on)
+on = not on
+TweenService:Create(Switch, TweenInfo.new(0.2), {
+BackgroundColor3 = on and Theme.Verde or Color3.fromRGB(60, 60, 60)
+}):Play()
+TweenService:Create(Dot, TweenInfo.new(0.2), {
+Position = on and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+}):Play()
+callback(on)
 	end)
 
 	return Holder
@@ -356,7 +360,7 @@ local function CreateSlider(parent, text, min, max, default, callback)
 	Label.Position = UDim2.fromOffset(10, 4)
 	Label.Size = UDim2.new(1, -20, 0, 18)
 	Label.Font = Enum.Font.Gotham
-	Label.Text = text .. ": " .. tostring(default)
+	Label.Text = text.. ": ".. tostring(default)
 	Label.TextColor3 = Theme.Texto
 	Label.TextSize = 13
 	Label.TextXAlignment = Enum.TextXAlignment.Left
@@ -377,28 +381,28 @@ local function CreateSlider(parent, text, min, max, default, callback)
 
 	local dragging = false
 	local function updateFromInput(inputPos)
-		local relative = math.clamp((inputPos.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
-		local value = math.floor(min + (max - min) * relative)
-		Fill.Size = UDim2.new(relative, 0, 1, 0)
-		Label.Text = text .. ": " .. tostring(value)
-		callback(value)
+local relative = math.clamp((inputPos.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+local value = math.floor(min + (max - min) * relative)
+Fill.Size = UDim2.new(relative, 0, 1, 0)
+Label.Text = text.. ": ".. tostring(value)
+callback(value)
 	end
 
 	Track.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			updateFromInput(input.Position)
-		end
+if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+dragging = true
+updateFromInput(input.Position)
+end
 	end)
 	UserInputService.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			updateFromInput(input.Position)
-		end
+if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+updateFromInput(input.Position)
+end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
+if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+dragging = false
+end
 	end)
 
 	return Holder
@@ -430,7 +434,7 @@ local function CreateDropdown(parent, text, getOptions, onSelect)
 	Label.BackgroundTransparency = 1
 	Label.Size = UDim2.new(1, 0, 1, 0)
 	Label.Font = Enum.Font.Gotham
-	Label.Text = text .. " ▾"
+	Label.Text = text.. " ▾"
 	Label.TextColor3 = Theme.Texto
 	Label.TextSize = 13
 	Label.TextXAlignment = Enum.TextXAlignment.Left
@@ -450,34 +454,34 @@ local function CreateDropdown(parent, text, getOptions, onSelect)
 	ListLayout.Parent = ListFrame
 
 	local function refresh()
-		ListFrame:ClearAllChildren()
-		local layout = Instance.new("UIListLayout")
-		layout.SortOrder = Enum.SortOrder.LayoutOrder
-		layout.Parent = ListFrame
+ListFrame:ClearAllChildren()
+local layout = Instance.new("UIListLayout")
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = ListFrame
 
-		local options = getOptions()
-		for i, opt in ipairs(options) do
-			local OptBtn = Instance.new("TextButton")
-			OptBtn.Size = UDim2.new(1, 0, 0, 28)
-			OptBtn.BackgroundColor3 = Theme.FundoAba
-			OptBtn.Text = opt
-			OptBtn.Font = Enum.Font.Gotham
-			OptBtn.TextSize = 12
-			OptBtn.TextColor3 = Theme.Texto
-			OptBtn.LayoutOrder = i
-			OptBtn.ZIndex = 11
-			OptBtn.Parent = ListFrame
-			OptBtn.MouseButton1Click:Connect(function()
-				onSelect(opt)
-				ListFrame.Visible = false
-			end)
-		end
-		ListFrame.Size = UDim2.new(1, 0, 0, #options * 28)
+local options = getOptions()
+for i, opt in ipairs(options) do
+local OptBtn = Instance.new("TextButton")
+OptBtn.Size = UDim2.new(1, 0, 0, 28)
+OptBtn.BackgroundColor3 = Theme.FundoAba
+OptBtn.Text = opt
+OptBtn.Font = Enum.Font.Gotham
+OptBtn.TextSize = 12
+OptBtn.TextColor3 = Theme.Texto
+OptBtn.LayoutOrder = i
+OptBtn.ZIndex = 11
+OptBtn.Parent = ListFrame
+OptBtn.MouseButton1Click:Connect(function()
+onSelect(opt)
+ListFrame.Visible = false
+end)
+end
+ListFrame.Size = UDim2.new(1, 0, 0, #options * 28)
 	end
 
 	Label.MouseButton1Click:Connect(function()
-		refresh()
-		ListFrame.Visible = not ListFrame.Visible
+refresh()
+ListFrame.Visible = not ListFrame.Visible
 	end)
 
 	return Holder
@@ -535,12 +539,12 @@ local function Notify(title, text, duration)
 	TweenService:Create(TextLbl, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
 
 	task.delay(duration, function()
-		TweenService:Create(Notif, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-		TweenService:Create(Stroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
-		TweenService:Create(TitleLbl, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-		TweenService:Create(TextLbl, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-		task.wait(0.3)
-		Notif:Destroy()
+TweenService:Create(Notif, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+TweenService:Create(Stroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+TweenService:Create(TitleLbl, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+TweenService:Create(TextLbl, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+task.wait(0.3)
+Notif:Destroy()
 	end)
 end
 
@@ -563,8 +567,8 @@ local function SetJumpPower(value)
 	State.JumpPower = value
 	local hum = GetHumanoid()
 	if hum then
-		hum.UseJumpPower = true
-		hum.JumpPower = value
+hum.UseJumpPower = true
+hum.JumpPower = value
 	end
 end
 
@@ -575,92 +579,92 @@ local function ToggleFly(enabled)
 	if not hrp then return end
 
 	if enabled then
-		FlyBodyVelocity = Instance.new("BodyVelocity")
-		FlyBodyVelocity.MaxForce = Vector3.new(1, 1, 1) * math.huge
-		FlyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
-		FlyBodyVelocity.Parent = hrp
+FlyBodyVelocity = Instance.new("BodyVelocity")
+FlyBodyVelocity.MaxForce = Vector3.new(1, 1, 1) * math.huge
+FlyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
+FlyBodyVelocity.Parent = hrp
 
-		FlyBodyGyro = Instance.new("BodyGyro")
-		FlyBodyGyro.MaxTorque = Vector3.new(1, 1, 1) * math.huge
-		FlyBodyGyro.P = 3000
-		FlyBodyGyro.Parent = hrp
+FlyBodyGyro = Instance.new("BodyGyro")
+FlyBodyGyro.MaxTorque = Vector3.new(1, 1, 1) * math.huge
+FlyBodyGyro.P = 3000
+FlyBodyGyro.Parent = hrp
 
-		FlyConnection = RunService.RenderStepped:Connect(function()
-			local cam = Workspace.CurrentCamera
-			local moveDir = Vector3.new()
-			local camCF = cam.CFrame
+FlyConnection = RunService.RenderStepped:Connect(function()
+local cam = Workspace.CurrentCamera
+local moveDir = Vector3.new()
+local camCF = cam.CFrame
 
-			if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir += camCF.LookVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir -= camCF.LookVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir -= camCF.RightVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir += camCF.RightVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0, 1, 0) end
-			if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0, 1, 0) end
+if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir += camCF.LookVector end
+if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir -= camCF.LookVector end
+if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir -= camCF.RightVector end
+if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir += camCF.RightVector end
+if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0, 1, 0) end
+if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0, 1, 0) end
 
-			if moveDir.Magnitude > 0 then
-				moveDir = moveDir.Unit * 60
-			end
-			FlyBodyVelocity.Velocity = moveDir
-			FlyBodyGyro.CFrame = camCF
-		end)
+if moveDir.Magnitude > 0 then
+moveDir = moveDir.Unit * 60
+end
+FlyBodyVelocity.Velocity = moveDir
+FlyBodyGyro.CFrame = camCF
+end)
 	else
-		if FlyConnection then FlyConnection:Disconnect() end
-		if FlyBodyVelocity then FlyBodyVelocity:Destroy() end
-		if FlyBodyGyro then FlyBodyGyro:Destroy() end
+if FlyConnection then FlyConnection:Disconnect() end
+if FlyBodyVelocity then FlyBodyVelocity:Destroy() end
+if FlyBodyGyro then FlyBodyGyro:Destroy() end
 	end
 end
 
 local function ToggleNoClip(enabled)
 	State.NoClip = enabled
 	if enabled then
-		NoClipConnection = RunService.Stepped:Connect(function()
-			local char = LocalPlayer.Character
-			if char then
-				for _, part in ipairs(char:GetDescendants()) do
-					if part:IsA("BasePart") then
-						part.CanCollide = false
-					end
-				end
-			end
-		end)
+NoClipConnection = RunService.Stepped:Connect(function()
+local char = LocalPlayer.Character
+if char then
+for _, part in ipairs(char:GetDescendants()) do
+if part:IsA("BasePart") then
+part.CanCollide = false
+end
+end
+end
+end)
 	else
-		if NoClipConnection then NoClipConnection:Disconnect() end
-		local char = LocalPlayer.Character
-		if char then
-			for _, part in ipairs(char:GetDescendants()) do
-				if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-					part.CanCollide = true
-				end
-			end
-		end
+if NoClipConnection then NoClipConnection:Disconnect() end
+local char = LocalPlayer.Character
+if char then
+for _, part in ipairs(char:GetDescendants()) do
+if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+part.CanCollide = true
+end
+end
+end
 	end
 end
 
 local function ToggleInfiniteJump(enabled)
 	State.InfiniteJump = enabled
 	if enabled then
-		InfJumpConnection = UserInputService.JumpRequest:Connect(function()
-			local hum = GetHumanoid()
-			if hum then
-				hum:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-		end)
+InfJumpConnection = UserInputService.JumpRequest:Connect(function()
+local hum = GetHumanoid()
+if hum then
+hum:ChangeState(Enum.HumanoidStateType.Jumping)
+end
+end)
 	else
-		if InfJumpConnection then InfJumpConnection:Disconnect() end
+if InfJumpConnection then InfJumpConnection:Disconnect() end
 	end
 end
 
 local function TeleportToPlayer(targetName)
 	local target = Players:FindFirstChild(targetName)
 	if not target or not target.Character then
-		Notify("Erro", "Jogador não encontrado ou sem personagem.", 3)
-		return
+Notify("Erro", "Jogador não encontrado ou sem personagem.", 3)
+return
 	end
 	local targetHrp = target.Character:FindFirstChild("HumanoidRootPart")
 	local myHrp = GetCharacter() and GetCharacter():FindFirstChild("HumanoidRootPart")
 	if targetHrp and myHrp then
-		myHrp.CFrame = targetHrp.CFrame + Vector3.new(0, 3, 0)
-		Notify("Teleporte", "Teleportado até " .. targetName, 2)
+myHrp.CFrame = targetHrp.CFrame + Vector3.new(0, 3, 0)
+Notify("Teleporte", "Teleportado até ".. targetName, 2)
 	end
 end
 
@@ -672,15 +676,15 @@ end
 local function ToggleFullBright(enabled)
 	State.FullBright = enabled
 	if enabled then
-		Lighting.Brightness = 2
-		Lighting.ClockTime = 14
-		Lighting.FogEnd = 100000
-		Lighting.GlobalShadows = false
+Lighting.Brightness = 2
+Lighting.ClockTime = 14
+Lighting.FogEnd = 100000
+Lighting.GlobalShadows = false
 	else
-		Lighting.Brightness = OriginalLighting.Brightness
-		Lighting.ClockTime = OriginalLighting.ClockTime
-		Lighting.FogEnd = OriginalLighting.FogEnd
-		Lighting.GlobalShadows = OriginalLighting.GlobalShadows
+Lighting.Brightness = OriginalLighting.Brightness
+Lighting.ClockTime = OriginalLighting.ClockTime
+Lighting.FogEnd = OriginalLighting.FogEnd
+Lighting.GlobalShadows = OriginalLighting.GlobalShadows
 	end
 end
 
@@ -694,9 +698,9 @@ local function ToggleInvisibilidade(enabled)
 	local char = LocalPlayer.Character
 	if not char then return end
 	for _, part in ipairs(char:GetDescendants()) do
-		if part:IsA("BasePart") or part:IsA("Decal") then
-			part.LocalTransparencyModifier = enabled and 1 or 0
-		end
+if part:IsA("BasePart") or part:IsA("Decal") then
+part.LocalTransparencyModifier = enabled and 1 or 0
+end
 	end
 end
 
@@ -705,26 +709,26 @@ local function UpdateESPBox(targetPlayer, box, nameLabel, distLabel)
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 	local myHrp = GetCharacter() and GetCharacter():FindFirstChild("HumanoidRootPart")
 	if not hrp or not myHrp then
-		box.Visible = false
-		return
+box.Visible = false
+return
 	end
 
 	local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
 	if onScreen then
-		box.Visible = true
-		box.Position = UDim2.fromOffset(pos.X - 40, pos.Y - 60)
+box.Visible = true
+box.Position = UDim2.fromOffset(pos.X - 40, pos.Y - 60)
 
-		if nameLabel then
-			nameLabel.Visible = State.MostrarNomes
-			nameLabel.Text = targetPlayer.Name
-		end
-		if distLabel then
-			distLabel.Visible = State.MostrarDistancia
-			local dist = math.floor((myHrp.Position - hrp.Position).Magnitude)
-			distLabel.Text = dist .. "m"
-		end
+if nameLabel then
+nameLabel.Visible = State.MostrarNomes
+nameLabel.Text = targetPlayer.Name
+end
+if distLabel then
+distLabel.Visible = State.MostrarDistancia
+local dist = math.floor((myHrp.Position - hrp.Position).Magnitude)
+distLabel.Text = dist.. "m"
+end
 	else
-		box.Visible = false
+box.Visible = false
 	end
 end
 
@@ -766,31 +770,31 @@ end
 local function RemoveESPBoxFor(targetPlayer)
 	local data = ESPBoxes[targetPlayer]
 	if data then
-		data.Box:Destroy()
-		ESPBoxes[targetPlayer] = nil
+data.Box:Destroy()
+ESPBoxes[targetPlayer] = nil
 	end
 end
 
 local function ToggleESP(enabled)
 	State.ESP = enabled
 	if enabled then
-		ESPFolder.Parent = ScreenGui
-		for _, p in ipairs(Players:GetPlayers()) do
-			if p ~= LocalPlayer then
-				CreateESPBoxFor(p)
-			end
-		end
-		ESPConnection = RunService.RenderStepped:Connect(function()
-			for p, data in pairs(ESPBoxes) do
-				UpdateESPBox(p, data.Box, data.NameLabel, data.DistLabel)
-			end
-		end)
+ESPFolder.Parent = ScreenGui
+for _, p in ipairs(Players:GetPlayers()) do
+if p ~= LocalPlayer then
+CreateESPBoxFor(p)
+end
+end
+ESPConnection = RunService.RenderStepped:Connect(function()
+for p, data in pairs(ESPBoxes) do
+UpdateESPBox(p, data.Box, data.NameLabel, data.DistLabel)
+end
+end)
 	else
-		if ESPConnection then ESPConnection:Disconnect() end
-		for p, _ in pairs(ESPBoxes) do
-			RemoveESPBoxFor(p)
-		end
-		ESPFolder.Parent = nil
+if ESPConnection then ESPConnection:Disconnect() end
+for p, _ in pairs(ESPBoxes) do
+RemoveESPBoxFor(p)
+end
+ESPFolder.Parent = nil
 	end
 end
 
@@ -801,22 +805,111 @@ Players.PlayerRemoving:Connect(function(p)
 	RemoveESPBoxFor(p)
 end)
 
+-- AIMBOT LOGIC START
+local function GetClosestPlayerInFOV(camera, fovRadius, maxDistance, onlyVisible)
+local closestPlayer = nil
+local closestDistance = math.huge
+local cameraPos = camera.CFrame.Position
+local viewportSize = camera.ViewportSize
+
+for _, player in ipairs(Players:GetPlayers()) do
+if player ~= LocalPlayer and player.Character then
+local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+if humanoidRootPart then
+local targetPos = humanoidRootPart.Position
+local distance = (targetPos - cameraPos).Magnitude
+
+if distance <= maxDistance then
+local screenPoint, onScreen = camera:WorldToViewportPoint(targetPos)
+if onScreen then
+local centerX, centerY = viewportSize.X / 2, viewportSize.Y / 2
+local distToCenter = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(centerX, centerY)).Magnitude
+if distToCenter <= fovRadius then
+if not onlyVisible or true then -- Simplificado para não travar com raycast pesado
+if distance < closestDistance then
+closestDistance = distance
+closestPlayer = player
+end
+end
+end
+end
+end
+end
+end
+end
+return closestPlayer
+end
+
+local function UpdateAimbot()
+if not State.AimbotAtivado then
+if AimbotConnection then
+AimbotConnection:Disconnect()
+AimbotConnection = nil
+end
+return
+end
+
+if not AimbotConnection then
+AimbotConnection = RunService.RenderStepped:Connect(function()
+if not State.AimbotAtivado then return end
+
+local camera = Camera
+local targetPlayer = GetClosestPlayerInFOV(
+camera,
+State.AimbotFOV,
+State.AimbotDistanciaMax,
+State.AimbotOnlyVisible
+)
+
+if targetPlayer then
+local rootPart = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+if rootPart then
+local targetPos = rootPart.Position
+local cameraCFrame = camera.CFrame
+local direction = (targetPos - cameraCFrame.Position).Unit
+
+-- Suavização simples
+local currentLook = cameraCFrame.LookVector
+local smoothFactor = 1 / math.max(1, State.AimbotSuavidade)
+local smoothedDirection = currentLook:Lerp(direction, smoothFactor)
+
+camera.CFrame = CFrame.new(cameraCFrame.Position, cameraCFrame.Position + smoothedDirection)
+end
+end
+end)
+end
+end
+-- AIMBOT LOGIC END
+
 local function SalvarConfiguracoes()
 	for key, value in pairs(State) do
-		if typeof(value) == "number" or typeof(value) == "boolean" then
-			LocalPlayer:SetAttribute("BM_" .. key, value)
-		end
+if typeof(value) == "number" or typeof(value) == "boolean" then
+LocalPlayer:SetAttribute("BM_".. key, value)
+end
 	end
 	Notify("Configurações", "Configurações salvas com sucesso!", 3)
 end
 
 local function CarregarConfiguracoes()
 	for key, _ in pairs(State) do
-		local saved = LocalPlayer:GetAttribute("BM_" .. key)
-		if saved ~= nil then
-			State[key] = saved
-		end
+local saved = LocalPlayer:GetAttribute("BM_".. key)
+if saved ~= nil then
+State[key] = saved
+end
 	end
+	-- Apply loaded settings
+	SetWalkSpeed(State.WalkSpeed)
+	SetJumpPower(State.JumpPower)
+	if State.Fly then ToggleFly(true) end
+	if State.NoClip then ToggleNoClip(true) end
+	if State.InfiniteJump then ToggleInfiniteJump(true) end
+	if State.FullBright then ToggleFullBright(true) end
+	SetFOV(State.FOV)
+	if State.Invisibilidade then ToggleInvisibilidade(true) end
+	if State.ESP then ToggleESP(true) end
+	SetGravity(State.Gravidade)
+	if State.AimbotAtivado then UpdateAimbot() end
+
 	Notify("Configurações", "Configurações carregadas!", 3)
 end
 
@@ -826,7 +919,7 @@ local function RegisterTab(name)
 	local Btn, Page = CreateTab(name, tabOrder)
 	Tabs[name] = {Btn = Btn, Page = Page}
 	Btn.MouseButton1Click:Connect(function()
-		SwitchTab(name)
+SwitchTab(name)
 	end)
 	return Page
 end
@@ -840,7 +933,7 @@ CreateToggle(PageJogador, "Infinite Jump", false, ToggleInfiniteJump)
 CreateDropdown(PageJogador, "Teleportar para jogador", function()
 	local names = {}
 	for _, p in ipairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer then table.insert(names, p.Name) end
+if p ~= LocalPlayer then table.insert(names, p.Name) end
 	end
 	return names
 end, TeleportToPlayer)
@@ -856,6 +949,16 @@ CreateToggle(PageVisual, "ESP de jogadores", false, ToggleESP)
 CreateToggle(PageVisual, "Mostrar nomes", false, function(v) State.MostrarNomes = v end)
 CreateToggle(PageVisual, "Mostrar distância", false, function(v) State.MostrarDistancia = v end)
 
+local PageAimbot = RegisterTab("Aimbot")
+CreateToggle(PageAimbot, "Ativar Aimbot", false, function(enabled)
+State.AimbotAtivado = enabled
+UpdateAimbot()
+end)
+CreateSlider(PageAimbot, "Suavidade", 1, 50, State.AimbotSuavidade, function(v) State.AimbotSuavidade = v end)
+CreateSlider(PageAimbot, "FOV (Pixels)", 50, 800, State.AimbotFOV, function(v) State.AimbotFOV = v end)
+CreateSlider(PageAimbot, "Distância Máx", 100, 5000, State.AimbotDistanciaMax, function(v) State.AimbotDistanciaMax = v end)
+CreateToggle(PageAimbot, "Apenas Visíveis", true, function(v) State.AimbotOnlyVisible = v end)
+
 local PageConfig = RegisterTab("Configurações")
 CreateButton(PageConfig, "💾 Salvar Configurações", SalvarConfiguracoes)
 CreateButton(PageConfig, "📂 Carregar Configurações", CarregarConfiguracoes)
@@ -870,6 +973,8 @@ CreateButton(PageConfig, "🔄 Restaurar Padrões", function()
 	ToggleInvisibilidade(false)
 	ToggleESP(false)
 	SetGravity(196.2)
+State.AimbotAtivado = false
+UpdateAimbot()
 	Notify("Configurações", "Valores restaurados para o padrão.", 3)
 end)
 
@@ -879,24 +984,24 @@ local dragging, dragStart, startPos = false, nil, nil
 
 TopBar.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = MainFrame.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
+dragging = true
+dragStart = input.Position
+startPos = MainFrame.Position
+input.Changed:Connect(function()
+if input.UserInputState == Enum.UserInputState.End then
+dragging = false
+end
+end)
 	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
 	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-		local delta = input.Position - dragStart
-		MainFrame.Position = UDim2.new(
-			startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y
-		)
+local delta = input.Position - dragStart
+MainFrame.Position = UDim2.new(
+startPos.X.Scale, startPos.X.Offset + delta.X,
+startPos.Y.Scale, startPos.Y.Offset + delta.Y
+)
 	end
 end)
 
@@ -904,23 +1009,23 @@ local resizing, resizeStart, startSize = false, nil, nil
 
 ResizeHandle.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		resizing = true
-		resizeStart = input.Position
-		startSize = MainFrame.Size
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				resizing = false
-			end
-		end)
+resizing = true
+resizeStart = input.Position
+startSize = MainFrame.Size
+input.Changed:Connect(function()
+if input.UserInputState == Enum.UserInputState.End then
+resizing = false
+end
+end)
 	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
 	if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-		local delta = input.Position - resizeStart
-		local newWidth = math.clamp(startSize.X.Offset + delta.X, MIN_SIZE.X, MAX_SIZE.X)
-		local newHeight = math.clamp(startSize.Y.Offset + delta.Y, MIN_SIZE.Y, MAX_SIZE.Y)
-		MainFrame.Size = UDim2.fromOffset(newWidth, newHeight)
+local delta = input.Position - resizeStart
+local newWidth = math.clamp(startSize.X.Offset + delta.X, MIN_SIZE.X, MAX_SIZE.X)
+local newHeight = math.clamp(startSize.Y.Offset + delta.Y, MIN_SIZE.Y, MAX_SIZE.Y)
+MainFrame.Size = UDim2.fromOffset(newWidth, newHeight)
 	end
 end)
 
@@ -932,15 +1037,15 @@ local function OpenMenu()
 	isOpen = true
 	MainFrame.Visible = true
 	MainFrame.Size = UDim2.fromOffset(fullSize.X.Offset * 0.7, fullSize.Y.Offset * 0.7)
-	MainFrame.Position = UDim2.new(0.5, -fullSize.X.Offset * 0.35, 0.5, -fullSize.Y.Offset * 0.35)
+	MainFrame.Position = UDim2.new(0.5, -fullSize.X.Offset * 0.3* 0.35, 0.5, -fullSize.Y.Offset * 0.35)
 	MainFrame.BackgroundTransparency = 1
 
 	local targetPos = UDim2.new(0.5, -fullSize.X.Offset / 2, 0.5, -fullSize.Y.Offset / 2)
 
 	TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-		Size = fullSize,
-		Position = targetPos,
-		BackgroundTransparency = 0,
+Size = fullSize,
+Position = targetPos,
+BackgroundTransparency = 0,
 	}):Play()
 
 	Notify("Brasil Menu", "Painel aberto!", 2)
@@ -949,9 +1054,9 @@ end
 local function CloseMenu()
 	isOpen = false
 	local tween = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-		Size = UDim2.fromOffset(fullSize.X.Offset * 0.7, fullSize.Y.Offset * 0.7),
-		Position = UDim2.new(0.5, -fullSize.X.Offset * 0.35, 0.5, -fullSize.Y.Offset * 0.35),
-		BackgroundTransparency = 1,
+Size = UDim2.fromOffset(fullSize.X.Offset * 0.7, fullSize.Y.Offset * 0.7),
+Position = UDim2.new(0.5, -fullSize.X.Offset * 0.35, 0.5, -fullSize.Y.Offset * 0.35),
+BackgroundTransparency = 1,
 	})
 	tween:Play()
 	tween.Completed:Wait()
@@ -962,28 +1067,28 @@ end
 local function ToggleMinimize()
 	isMinimized = not isMinimized
 	if isMinimized then
-		fullSize = MainFrame.Size
-		TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
-			Size = UDim2.fromOffset(MainFrame.Size.X.Offset, 40),
-		}):Play()
-		TabBar.Visible = false
-		PagesHolder.Visible = false
-		ResizeHandle.Visible = false
+fullSize = MainFrame.Size
+TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
+Size = UDim2.fromOffset(MainFrame.Size.X.Offset, 40),
+}):Play()
+TabBar.Visible = false
+PagesHolder.Visible = false
+ResizeHandle.Visible = false
 	else
-		TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
-			Size = fullSize,
-		}):Play()
-		TabBar.Visible = true
-		PagesHolder.Visible = true
-		ResizeHandle.Visible = true
+TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
+Size = fullSize,
+}):Play()
+TabBar.Visible = true
+PagesHolder.Visible = true
+ResizeHandle.Visible = true
 	end
 end
 
 ToggleButton.MouseButton1Click:Connect(function()
 	if isOpen then
-		CloseMenu()
+CloseMenu()
 	else
-		OpenMenu()
+OpenMenu()
 	end
 end)
 
@@ -994,11 +1099,11 @@ LocalPlayer.CharacterAdded:Connect(function(char)
 	task.wait(0.5)
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then
-		hum.WalkSpeed = State.WalkSpeed
-		if State.JumpPower > 0 then
-			hum.UseJumpPower = true
-			hum.JumpPower = State.JumpPower
-		end
+hum.WalkSpeed = State.WalkSpeed
+if State.JumpPower > 0 then
+hum.UseJumpPower = true
+hum.JumpPower = State.JumpPower
+end
 	end
 	if State.NoClip then ToggleNoClip(true) end
 	if State.Fly then ToggleFly(true) end
@@ -1006,16 +1111,15 @@ LocalPlayer.CharacterAdded:Connect(function(char)
 	if State.Invisibilidade then ToggleInvisibilidade(true) end
 end)
 
--- ===================== INICIALIZAÇÃO (INTRO -> BOTÃO) =====================
 task.spawn(function()
 	PlayIntro(function()
-		ToggleButton.Visible = true
-		ToggleButton.Size = UDim2.fromOffset(20, 20)
-		local popTween = TweenService:Create(ToggleButton, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-			Size = UDim2.fromOffset(56, 56)
-		})
-		popTween:Play()
-		popTween.Completed:Wait()
-		pulseTween:Play()
+ToggleButton.Visible = true
+ToggleButton.Size = UDim2.fromOffset(20, 20)
+local popTween = TweenService:Create(ToggleButton, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+Size = UDim2.fromOffset(56, 56)
+})
+popTween:Play()
+popTween.Completed:Wait()
+pulseTween:Play()
 	end)
 end)
