@@ -1,7 +1,7 @@
 --[[
-    BRASIL MENU 🇧🇷 - VERSÃO COMPLETA E OTIMIZADA
-    O melhor painel feito para você!
-    Feito para Vencedores!
+    BRASIL MENU 🇧🇷 - V3 PROFESSIONAL EDITION
+    Design Ultra-Realista & Performance Otimizada
+    Totalmente Compatível com Mobile e PC
 ]]
 
 local Players = game:GetService("Players")
@@ -12,7 +12,7 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- Variáveis de Estado Global
+-- Configurações Globais
 local _G = getgenv and getgenv() or _G
 _G.BrasilMenuConfig = {
     Fly = false,
@@ -23,158 +23,99 @@ _G.BrasilMenuConfig = {
     InfiniteJump = false,
     FullBright = false,
     EspEnabled = false,
-    EspLines = false,
-    EspBoxes = false,
-    EspNames = false,
     FOV = 70,
-    NoFog = false,
-    Sprint = false,
-    AutoRun = false,
-    ZoomFree = false,
-    Theme = "Brasil"
+    ThemeColor = Color3.fromRGB(0, 255, 0)
 }
 
--- Funções de Compatibilidade
+-- Funções de Compatibilidade para Executores
 local function protect_gui(gui)
-    if syn and syn.protect_gui then
-        syn.protect_gui(gui)
-    elseif gethui then
-        gui.Parent = gethui()
-    else
-        gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    end
+    if syn and syn.protect_gui then syn.protect_gui(gui)
+    elseif gethui then gui.Parent = gethui()
+    else gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 end
 
 -- GUI PRINCIPAL
 local BrasilMenu = Instance.new("ScreenGui")
-BrasilMenu.Name = "BrasilMenu_v2"
+BrasilMenu.Name = "BrasilMenu_V3"
 BrasilMenu.ResetOnSpawn = false
 protect_gui(BrasilMenu)
 
--- BOTÃO FLUTUANTE PARA MOBILE
-local OpenButton = Instance.new("ImageButton")
-OpenButton.Name = "OpenButton"
-OpenButton.Size = UDim2.new(0, 50, 0, 50)
-OpenButton.Position = UDim2.new(0, 10, 0.5, -25)
-OpenButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-OpenButton.Image = "rbxassetid://553070660" -- Bandeira do Brasil
-OpenButton.Parent = BrasilMenu
+-- BOTÃO FLUTUANTE (ABRIR/FECHAR)
+local OpenBtn = Instance.new("ImageButton")
+OpenBtn.Name = "OpenBtn"
+OpenBtn.Size = UDim2.new(0, 60, 0, 60)
+OpenBtn.Position = UDim2.new(0, 15, 0.5, -30)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+OpenBtn.Image = "rbxassetid://553070660" -- Bandeira do Brasil
+OpenBtn.Parent = BrasilMenu
 
 local OpenCorner = Instance.new("UICorner")
-OpenCorner.CornerRadius = UDim.new(0, 25)
-OpenCorner.Parent = OpenButton
+OpenCorner.CornerRadius = UDim.new(0, 30)
+OpenCorner.Parent = OpenBtn
 
 local OpenStroke = Instance.new("UIStroke")
-OpenStroke.Color = Color3.fromRGB(255, 255, 0)
+OpenStroke.Color = Color3.fromRGB(0, 255, 0)
 OpenStroke.Thickness = 2
-OpenStroke.Parent = OpenButton
+OpenStroke.Parent = OpenBtn
 
+-- MAIN FRAME (DESIGN PROFISSIONAL)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 750, 0, 480)
-MainFrame.Position = UDim2.new(0.5, -375, 0.5, -240)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.Size = UDim2.new(0, 650, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -325, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
 MainFrame.Visible = false
-MainFrame.Active = true
-MainFrame.Draggable = true
+MainFrame.ClipsDescendants = true
 MainFrame.Parent = BrasilMenu
 
-local UICornerMain = Instance.new("UICorner")
-UICornerMain.CornerRadius = UDim.new(0, 12)
-UICornerMain.Parent = MainFrame
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
 
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(0, 255, 0)
-UIStroke.Thickness = 2
-UIStroke.Transparency = 0.5
-UIStroke.Parent = MainFrame
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(0, 255, 0)
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.4
+MainStroke.Parent = MainFrame
 
--- ABA LATERAL (NAV BAR)
-local NavBar = Instance.new("Frame")
-NavBar.Name = "NavBar"
-NavBar.Size = UDim2.new(0, 180, 1, 0)
-NavBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-NavBar.BorderSizePixel = 0
-NavBar.Parent = MainFrame
+-- BARRA LATERAL
+local SideBar = Instance.new("Frame")
+SideBar.Size = UDim2.new(0, 160, 1, 0)
+SideBar.BackgroundColor3 = Color3.fromRGB(7, 7, 7)
+SideBar.BorderSizePixel = 0
+SideBar.Parent = MainFrame
 
-local NavLayout = Instance.new("UIListLayout")
-NavLayout.Padding = UDim.new(0, 8)
-NavLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-NavLayout.Parent = NavBar
+local SideLayout = Instance.new("UIListLayout")
+SideLayout.Padding = UDim.new(0, 5)
+SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+SideLayout.Parent = SideBar
 
-local NavPadding = Instance.new("UIPadding")
-NavPadding.PaddingTop = UDim.new(0, 20)
-NavPadding.Parent = NavBar
+local LogoLabel = Instance.new("TextLabel")
+LogoLabel.Size = UDim2.new(1, 0, 0, 60)
+LogoLabel.BackgroundTransparency = 1
+LogoLabel.Text = "BRASIL MENU 🇧🇷"
+LogoLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+LogoLabel.Font = Enum.Font.GothamBold
+LogoLabel.TextSize = 18
+LogoLabel.Parent = SideBar
 
-local Logo = Instance.new("TextLabel")
-Logo.Size = UDim2.new(0.9, 0, 0, 50)
-Logo.BackgroundTransparency = 1
-Logo.Text = "BRASIL\nMENU 🇧🇷"
-Logo.TextColor3 = Color3.fromRGB(0, 255, 0)
-Logo.Font = Enum.Font.GothamBold
-Logo.TextSize = 20
-Logo.Parent = NavBar
+-- CONTEÚDO
+local Container = Instance.new("Frame")
+Container.Position = UDim2.new(0, 170, 0, 10)
+Container.Size = UDim2.new(1, -180, 1, -20)
+Container.BackgroundTransparency = 1
+Container.Parent = MainFrame
 
--- ÁREA DE CONTEÚDO
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Name = "ContentFrame"
-ContentFrame.Size = UDim2.new(1, -190, 1, -40)
-ContentFrame.Position = UDim2.new(0, 185, 0, 20)
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Parent = MainFrame
-
--- TELA DE BOAS-VINDAS
-local WelcomeFrame = Instance.new("Frame")
-WelcomeFrame.Size = UDim2.new(1, 0, 1, 0)
-WelcomeFrame.BackgroundTransparency = 1
-WelcomeFrame.Parent = ContentFrame
-
-local WelcomeTitle = Instance.new("TextLabel")
-WelcomeTitle.Size = UDim2.new(1, 0, 0, 100)
-WelcomeTitle.BackgroundTransparency = 1
-WelcomeTitle.Text = "BEM-VINDO AO BRASIL MENU!"
-WelcomeTitle.TextColor3 = Color3.fromRGB(255, 255, 0)
-WelcomeTitle.Font = Enum.Font.GothamBold
-WelcomeTitle.TextSize = 32
-WelcomeTitle.Parent = WelcomeFrame
-
-local WelcomeSub = Instance.new("TextLabel")
-WelcomeSub.Size = UDim2.new(1, 0, 0, 30)
-WelcomeSub.Position = UDim2.new(0, 0, 0, 80)
-WelcomeSub.BackgroundTransparency = 1
-WelcomeSub.Text = "O melhor painel feito para você!"
-WelcomeSub.TextColor3 = Color3.fromRGB(200, 200, 200)
-WelcomeSub.Font = Enum.Font.Gotham
-WelcomeSub.TextSize = 18
-WelcomeSub.Parent = WelcomeFrame
-
-local StartButton = Instance.new("TextButton")
-StartButton.Size = UDim2.new(0, 250, 0, 50)
-StartButton.Position = UDim2.new(0.5, -125, 0.7, 0)
-StartButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-StartButton.Text = "INICIAR MENU"
-StartButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-StartButton.Font = Enum.Font.GothamBold
-StartButton.TextSize = 20
-StartButton.Parent = WelcomeFrame
-
-local StartCorner = Instance.new("UICorner")
-StartCorner.CornerRadius = UDim.new(0, 8)
-StartCorner.Parent = StartButton
-
--- FUNÇÕES DAS ABAS
 local tabs = {}
 local function createTab(name)
     local tab = Instance.new("ScrollingFrame")
-    tab.Name = name .. "Tab"
     tab.Size = UDim2.new(1, 0, 1, 0)
     tab.BackgroundTransparency = 1
     tab.Visible = false
-    tab.ScrollBarThickness = 2
-    tab.CanvasSize = UDim2.new(0, 0, 2, 0)
-    tab.Parent = ContentFrame
+    tab.ScrollBarThickness = 0
+    tab.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+    tab.Parent = Container
     
     local layout = Instance.new("UIListLayout")
     layout.Padding = UDim.new(0, 10)
@@ -190,23 +131,19 @@ local PlayerTab = createTab("Jogador")
 local MovementTab = createTab("Movimento")
 local VisualTab = createTab("Visual")
 local TeleportTab = createTab("Teleporte")
-local ConfigTab = createTab("Config")
 
-StartButton.MouseButton1Click:Connect(function()
-    WelcomeFrame.Visible = false
-    HomeTab.Visible = true
-end)
+HomeTab.Visible = true
 
--- NAVEGAÇÃO
-local function addNavBtn(name)
+-- BOTÕES DA SIDEBAR
+local function addTabBtn(name)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.85, 0, 0, 40)
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
     btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     btn.Text = name
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 14
-    btn.Parent = NavBar
+    btn.Parent = SideBar
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
@@ -214,25 +151,22 @@ local function addNavBtn(name)
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(tabs) do t.Visible = false end
-        WelcomeFrame.Visible = false
         tabs[name].Visible = true
     end)
 end
 
-addNavBtn("Home")
-addNavBtn("Jogador")
-addNavBtn("Movimento")
-addNavBtn("Visual")
-addNavBtn("Teleporte")
-addNavBtn("Config")
+addTabBtn("Home")
+addTabBtn("Jogador")
+addTabBtn("Movimento")
+addTabBtn("Visual")
+addTabBtn("Teleporte")
 
 -- COMPONENTES (TOGGLES E SLIDERS)
 local function createToggle(parent, text, callback)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.95, 0, 0, 45)
-    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    frame.Size = UDim2.new(0.95, 0, 0, 40)
+    frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     frame.Parent = parent
-    
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
     
     local label = Instance.new("TextLabel")
@@ -243,59 +177,57 @@ local function createToggle(parent, text, callback)
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Font = Enum.Font.Gotham
-    label.TextSize = 16
+    label.TextSize = 14
     label.Parent = frame
     
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 50, 0, 25)
-    btn.Position = UDim2.new(0.95, -55, 0.5, -12)
-    btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    btn.Size = UDim2.new(0, 45, 0, 22)
+    btn.Position = UDim2.new(0.95, -50, 0.5, -11)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     btn.Text = ""
     btn.Parent = frame
-    
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 11)
     
     local active = false
     btn.MouseButton1Click:Connect(function()
         active = not active
-        btn.BackgroundColor3 = active and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0)
+        btn.BackgroundColor3 = active and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(30, 30, 30)
         callback(active)
     end)
 end
 
 local function createSlider(parent, text, min, max, default, callback)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.95, 0, 0, 60)
-    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    frame.Size = UDim2.new(0.95, 0, 0, 55)
+    frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     frame.Parent = parent
-    
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
     
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 30)
-    label.Position = UDim2.new(0.05, 0, 0, 0)
+    label.Size = UDim2.new(1, 0, 0, 25)
+    label.Position = UDim2.new(0.05, 0, 0, 5)
     label.BackgroundTransparency = 1
     label.Text = text .. ": " .. default
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Font = Enum.Font.Gotham
-    label.TextSize = 14
+    label.TextSize = 13
     label.Parent = frame
     
     local slider = Instance.new("Frame")
-    slider.Size = UDim2.new(0.9, 0, 0, 5)
-    slider.Position = UDim2.new(0.05, 0, 0.7, 0)
-    slider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    slider.Size = UDim2.new(0.9, 0, 0, 4)
+    slider.Position = UDim2.new(0.05, 0, 0.75, 0)
+    slider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     slider.Parent = frame
     
     local fill = Instance.new("Frame")
     fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    fill.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
     fill.Parent = slider
     
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 15, 0, 15)
-    btn.Position = UDim2.new((default - min) / (max - min), -7, 0.5, -7)
+    btn.Size = UDim2.new(0, 12, 0, 12)
+    btn.Position = UDim2.new((default - min) / (max - min), -6, 0.5, -6)
     btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     btn.Text = ""
     btn.Parent = slider
@@ -303,7 +235,7 @@ local function createSlider(parent, text, min, max, default, callback)
     
     local dragging = false
     btn.MouseButton1Down:Connect(function() dragging = true end)
-    UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+    UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
     
     RunService.RenderStepped:Connect(function()
         if dragging then
@@ -312,191 +244,70 @@ local function createSlider(parent, text, min, max, default, callback)
             local sliderSize = slider.AbsoluteSize.X
             local percent = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
             local value = math.floor(min + (max - min) * percent)
-            
             fill.Size = UDim2.new(percent, 0, 1, 0)
-            btn.Position = UDim2.new(percent, -7, 0.5, -7)
+            btn.Position = UDim2.new(percent, -6, 0.5, -6)
             label.Text = text .. ": " .. value
             callback(value)
         end
     end)
 end
 
--- HOME TAB CONTENT
-local infoFrame = Instance.new("Frame")
-infoFrame.Size = UDim2.new(0.95, 0, 0, 150)
-infoFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-infoFrame.Parent = HomeTab
-Instance.new("UICorner", infoFrame).CornerRadius = UDim.new(0, 8)
+-- FUNCIONALIDADES (FLY, SPEED, ETC)
+createSlider(PlayerTab, "WalkSpeed", 16, 500, 16, function(v) if LocalPlayer.Character then LocalPlayer.Character.Humanoid.WalkSpeed = v end end)
+createSlider(PlayerTab, "JumpPower", 50, 500, 50, function(v) if LocalPlayer.Character then LocalPlayer.Character.Humanoid.JumpPower = v end end)
 
-local function createStat(text, yPos)
-    local l = Instance.new("TextLabel")
-    l.Size = UDim2.new(0.9, 0, 0, 30)
-    l.Position = UDim2.new(0.05, 0, 0, yPos)
-    l.BackgroundTransparency = 1
-    l.TextColor3 = Color3.fromRGB(255, 255, 255)
-    l.Font = Enum.Font.Gotham
-    l.TextSize = 16
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    l.Text = text
-    l.Parent = infoFrame
-    return l
-end
-
-local userStat = createStat("Usuário: " .. LocalPlayer.Name, 10)
-local fpsStat = createStat("FPS: --", 40)
-local pingStat = createStat("Ping: -- ms", 70)
-local timeStat = createStat("Tempo: 00:00:00", 100)
-
-local startTime = tick()
-RunService.Heartbeat:Connect(function()
-    fpsStat.Text = "FPS: " .. math.floor(1/RunService.Heartbeat:Wait())
-    pingStat.Text = "Ping: " .. math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()*1000) .. " ms"
-    local elapsed = tick() - startTime
-    timeStat.Text = string.format("Tempo: %02d:%02d:%02d", math.floor(elapsed/3600), math.floor(elapsed/60)%60, elapsed%60)
-end)
-
--- JOGADOR TAB CONTENT
-createSlider(PlayerTab, "WalkSpeed", 0, 500, 16, function(v) _G.BrasilMenuConfig.WalkSpeed = v; if LocalPlayer.Character then LocalPlayer.Character.Humanoid.WalkSpeed = v end end)
-createSlider(PlayerTab, "JumpPower", 0, 500, 50, function(v) _G.BrasilMenuConfig.JumpPower = v; if LocalPlayer.Character then LocalPlayer.Character.Humanoid.JumpPower = v end end)
-local resetBtn = Instance.new("TextButton")
-resetBtn.Size = UDim2.new(0.95, 0, 0, 40)
-resetBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-resetBtn.Text = "RESETAR PERSONAGEM"
-resetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-resetBtn.Font = Enum.Font.GothamBold
-resetBtn.Parent = PlayerTab
-Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 6)
-resetBtn.MouseButton1Click:Connect(function() if LocalPlayer.Character then LocalPlayer.Character:BreakJoints() end end)
-
--- MOVIMENTO TAB CONTENT
-local function toggleFly(active)
+createToggle(MovementTab, "Fly (Andar no Ar)", function(active)
     _G.BrasilMenuConfig.Fly = active
     local char = LocalPlayer.Character
     if not char then return end
     local hum = char:FindFirstChildOfClass("Humanoid")
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    
     if active then
         hum.PlatformStand = true
-        local bg = Instance.new("BodyGyro")
-        bg.Name = "BrasilFlyGyro"
-        bg.P = 9e4; bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9); bg.CFrame = hrp.CFrame; bg.Parent = hrp
         local bv = Instance.new("BodyVelocity")
-        bv.Name = "BrasilFlyVel"
-        bv.Velocity = Vector3.new(0,0,0); bv.MaxForce = Vector3.new(9e9, 9e9, 9e9); bv.Parent = hrp
+        bv.Name = "FlyVel"; bv.MaxForce = Vector3.new(9e9, 9e9, 9e9); bv.Velocity = Vector3.new(0,0,0); bv.Parent = hrp
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "FlyGyro"; bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9); bg.CFrame = hrp.CFrame; bg.Parent = hrp
     else
         hum.PlatformStand = false
-        if hrp:FindFirstChild("BrasilFlyGyro") then hrp.BrasilFlyGyro:Destroy() end
-        if hrp:FindFirstChild("BrasilFlyVel") then hrp.BrasilFlyVel:Destroy() end
-    end
-end
-
-createToggle(MovementTab, "Fly (Andar no Ar)", toggleFly)
-createSlider(MovementTab, "Velocidade Fly", 0, 500, 50, function(v) _G.BrasilMenuConfig.FlySpeed = v end)
-createToggle(MovementTab, "No Clip", function(v) _G.BrasilMenuConfig.NoClip = v end)
-createToggle(MovementTab, "Infinite Jump", function(v) _G.BrasilMenuConfig.InfiniteJump = v end)
-
-UserInputService.JumpRequest:Connect(function()
-    if _G.BrasilMenuConfig.InfiniteJump and LocalPlayer.Character then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+        if hrp:FindFirstChild("FlyVel") then hrp.FlyVel:Destroy() end
+        if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
     end
 end)
 
-RunService.Stepped:Connect(function()
-    if _G.BrasilMenuConfig.NoClip and LocalPlayer.Character then
-        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-            if part:IsA("BasePart") then part.CanCollide = false end
-        end
-    end
+createSlider(MovementTab, "Velocidade Fly", 10, 500, 50, function(v) _G.BrasilMenuConfig.FlySpeed = v end)
+
+RunService.RenderStepped:Connect(function()
     if _G.BrasilMenuConfig.Fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = LocalPlayer.Character.HumanoidRootPart
-        local vel = hrp:FindFirstChild("BrasilFlyVel")
-        local gyro = hrp:FindFirstChild("BrasilFlyGyro")
+        local vel = hrp:FindFirstChild("FlyVel")
+        local gyro = hrp:FindFirstChild("FlyGyro")
         if vel and gyro then
-            local moveDir = Vector3.new(0,0,0)
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir += Camera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir -= Camera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir -= Camera.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir += Camera.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0,1,0) end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0,1,0) end
-            vel.Velocity = moveDir * _G.BrasilMenuConfig.FlySpeed
+            local move = Vector3.new(0,0,0)
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then move += Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then move -= Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then move -= Camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then move += Camera.CFrame.RightVector end
+            vel.Velocity = move * _G.BrasilMenuConfig.FlySpeed
             gyro.CFrame = Camera.CFrame
         end
     end
 end)
 
--- VISUAL TAB CONTENT
-createToggle(VisualTab, "FullBright", function(active)
-    _G.BrasilMenuConfig.FullBright = active
-    if active then Lighting.Ambient = Color3.fromRGB(255, 255, 255); Lighting.Brightness = 2
-    else Lighting.Ambient = Color3.fromRGB(127, 127, 127); Lighting.Brightness = 1 end
+-- ARRASTAR MENU (DRAG)
+local dragging, dragInput, dragStart, startPos
+LogoLabel.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true; dragStart = input.Position; startPos = MainFrame.Position
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+    end
 end)
-createToggle(VisualTab, "No Fog", function(v) Lighting.FogEnd = v and 100000 or 10000 end)
-createSlider(VisualTab, "FOV", 0, 360, 70, function(v) Camera.FieldOfView = v end)
-
--- ESP SYSTEM
-local function createEsp(player)
-    local highlight = Instance.new("Highlight")
-    highlight.Name = "BrasilEsp"
-    highlight.Adornee = player.Character
-    highlight.FillColor = Color3.fromRGB(0, 255, 0)
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.Parent = player.Character
-end
-
-createToggle(VisualTab, "ESP Jogadores", function(active)
-    _G.BrasilMenuConfig.EspEnabled = active
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character then
-            if active then createEsp(p)
-            elseif p.Character:FindFirstChild("BrasilEsp") then p.Character.BrasilEsp:Destroy() end
-        end
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
--- TELEPORTE TAB CONTENT
-local tpList = Instance.new("Frame")
-tpList.Size = UDim2.new(0.95, 0, 0, 300)
-tpList.BackgroundTransparency = 1
-tpList.Parent = TeleportTab
-local tpLayout = Instance.new("UIListLayout")
-tpLayout.Padding = UDim.new(0, 5)
-tpLayout.Parent = tpList
-
-local function updateTpList()
-    for _, v in pairs(tpList:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, 0, 0, 30)
-            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-            btn.Text = "Teleportar para: " .. p.Name
-            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            btn.Parent = tpList
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-            btn.MouseButton1Click:Connect(function()
-                if LocalPlayer.Character and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                    LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame
-                end
-            end)
-        end
-    end
-end
-updateTpList()
-Players.PlayerAdded:Connect(updateTpList)
-Players.PlayerRemoving:Connect(updateTpList)
-
--- CONFIG TAB CONTENT
-createToggle(ConfigTab, "Tema Brasil (Verde/Amarelo)", function(v)
-    UIStroke.Color = v and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
-    Logo.TextColor3 = v and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
-end)
-
--- CONTROLES DE ABRIR/FECHAR
-OpenButton.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.RightControl then MainFrame.Visible = not MainFrame.Visible end
-end)
-
-print("Brasil Menu 🇧🇷 Completo Carregado! Use o botão ou Right Control.")
+-- ABRIR/FECHAR
+OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
